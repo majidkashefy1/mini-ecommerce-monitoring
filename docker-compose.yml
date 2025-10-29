@@ -1,0 +1,95 @@
+version: "3.8"
+
+services:
+  # --- MongoDB ---
+  db:
+    image: mongo:6
+    container_name: db
+    volumes:
+      - db_data:/data/db
+    networks:
+      - monitoring_net
+
+  # --- Backend API ---
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    networks:
+      - monitoring_net
+
+  # --- Frontend ---
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+    networks:
+      - monitoring_net
+
+  # --- Load Balancer ---
+  nginx-lb:
+    image: nginx:alpine
+    container_name: nginx-lb
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+    networks:
+      - monitoring_net
+
+  # --- Prometheus ---
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring_net
+
+  # --- Grafana ---
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring_net
+
+  # --- Node Exporter (System metrics) ---
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node-exporter
+    expose:
+      - "9100"
+    networks:
+      - monitoring_net
+
+  # --- cAdvisor (Container metrics) ---
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - monitoring_net
+
+volumes:
+  db_data:
+
+networks:
+  monitoring_net:
