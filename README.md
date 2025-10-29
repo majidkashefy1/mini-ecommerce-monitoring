@@ -198,13 +198,9 @@ To use this structure in your own project:
 ## 👨‍💻 Author
 
 **Kashefy majid**  
-DevOps & Cloud Enthusiast  
+Programmer 
 📬 [GitHub](https://github.com/majidkashefy1)
 
 ---
-
-## 🧰 License
-
-This project is open-source under the [MIT License](LICENSE).
 
 
